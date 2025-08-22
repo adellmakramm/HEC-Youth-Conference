@@ -1,169 +1,427 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conference Room Lookup</title>
+    <title>الحكاية - Conference Room Lookup</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
+            font-family: 'Cairo', 'Tajawal', Arial, sans-serif;
+            background: linear-gradient(135deg, #061e24 0%, #0a3440 25%, #0d4a5c 50%, #1a7a8a 100%);
+            min-height: 100vh;
             padding: 20px;
-            background-color: #f5f5f5;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(61, 213, 232, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(42, 165, 181, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 60%, rgba(26, 122, 138, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
         }
         
         .container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.25),
+                0 0 0 1px rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+            position: relative;
         }
         
-        h1 {
+        .header {
+            background: linear-gradient(135deg, #0a4f5c 0%, #2aa5b5 50%, #3dd5e8 100%);
+            color: white;
+            padding: 40px 30px;
             text-align: center;
-            color: #333;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M 50 0 L 0 0 0 50" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .arabic-title {
+            font-family: 'Cairo', 'Tajawal', Arial, sans-serif;
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+            text-shadow: 
+                0 0 30px rgba(61, 213, 232, 0.6),
+                0 0 60px rgba(61, 213, 232, 0.4),
+                2px 2px 4px rgba(0, 0, 0, 0.3);
+            letter-spacing: 2px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .english-title {
+            font-size: 1.2rem;
+            font-weight: 300;
+            opacity: 0.9;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.8;
+            font-weight: 400;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .main-content {
+            padding: 50px 40px;
+            position: relative;
+        }
+        
+        .instructions {
+            background: linear-gradient(135deg, rgba(61, 213, 232, 0.1) 0%, rgba(42, 165, 181, 0.05) 100%);
+            border: 1px solid rgba(61, 213, 232, 0.2);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 35px;
+            font-size: 16px;
+            color: #0a4f5c;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .instructions::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            opacity: 0.3;
+        }
+        
+        #loadStatus {
+            text-align: center;
             margin-bottom: 30px;
+            padding: 15px;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        #loadStatus.loading {
+            background: linear-gradient(135deg, #fff3cd 0%, #fef2c0 100%);
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            animation: pulse 2s infinite;
+        }
+        
+        #loadStatus.success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: 1px solid #a3d9a5;
+            color: #155724;
+        }
+        
+        #loadStatus.error {
+            background: linear-gradient(135deg, #f8d7da 0%, #f1aeb5 100%);
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
         }
         
         .search-section {
-            margin-bottom: 30px;
+            margin-bottom: 40px;
+            position: relative;
+        }
+        
+        .input-group {
+            position: relative;
+            margin-bottom: 25px;
         }
         
         label {
             display: block;
-            margin-bottom: 10px;
-            font-weight: bold;
-            color: #555;
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: #0a4f5c;
+            font-size: 16px;
         }
         
         input[type="tel"] {
             width: 100%;
-            padding: 15px;
+            padding: 18px 20px;
             font-size: 16px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            box-sizing: border-box;
+            border: 2px solid rgba(42, 165, 181, 0.3);
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+            font-family: 'Cairo', Arial, sans-serif;
+            backdrop-filter: blur(10px);
         }
         
         input[type="tel"]:focus {
-            border-color: #4CAF50;
+            border-color: #3dd5e8;
             outline: none;
+            box-shadow: 
+                0 0 0 3px rgba(61, 213, 232, 0.1),
+                0 8px 25px rgba(61, 213, 232, 0.15);
+            transform: translateY(-1px);
+        }
+        
+        input[type="tel"]::placeholder {
+            color: rgba(42, 165, 181, 0.6);
+        }
+        
+        .input-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #2aa5b5;
+            font-size: 20px;
+            pointer-events: none;
         }
         
         button {
             width: 100%;
-            padding: 15px;
-            background-color: #4CAF50;
+            padding: 18px;
+            background: linear-gradient(135deg, #2aa5b5 0%, #3dd5e8 100%);
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 15px;
             font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-            margin-top: 10px;
+            transition: all 0.3s ease;
+            font-family: 'Cairo', Arial, sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        button:hover::before {
+            left: 100%;
         }
         
         button:hover {
-            background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 
+                0 15px 35px rgba(42, 165, 181, 0.4),
+                0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        button:active {
+            transform: translateY(0);
         }
         
         .result {
-            margin-top: 30px;
-            padding: 20px;
-            border-radius: 5px;
+            margin-top: 35px;
+            padding: 30px;
+            border-radius: 20px;
             display: none;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
         }
         
         .result.success {
-            background-color: #d4edda;
-            border: 1px solid #c3e6cb;
+            background: linear-gradient(135deg, rgba(212, 237, 218, 0.95) 0%, rgba(195, 230, 203, 0.95) 100%);
+            border: 1px solid rgba(163, 217, 165, 0.8);
             color: #155724;
+            box-shadow: 0 15px 35px rgba(21, 87, 36, 0.1);
         }
         
         .result.error {
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
+            background: linear-gradient(135deg, rgba(248, 215, 218, 0.95) 0%, rgba(241, 174, 181, 0.95) 100%);
+            border: 1px solid rgba(245, 198, 203, 0.8);
             color: #721c24;
+            box-shadow: 0 15px 35px rgba(114, 28, 36, 0.1);
+        }
+        
+        .result::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #2aa5b5, #3dd5e8, #2aa5b5);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
         }
         
         .result h2 {
             margin-top: 0;
-            margin-bottom: 15px;
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .info-item {
-            margin: 10px 0;
+            margin: 15px 0;
             font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 12px;
+            backdrop-filter: blur(5px);
+            transition: all 0.2s ease;
+        }
+        
+        .info-item:hover {
+            transform: translateX(5px);
+            background: rgba(255, 255, 255, 0.6);
         }
         
         .info-item strong {
-            display: inline-block;
-            width: 120px;
-        }
-
-        #loadStatus.loading {
-            background-color: #fff3cd;
-            border: 1px solid #ffeaa7;
-            color: #856404;
-            border-radius: 5px;
+            min-width: 80px;
+            font-weight: 600;
+            color: #0a4f5c;
         }
         
-        #loadStatus.success {
-            background-color: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-            border-radius: 5px;
+        .info-value {
+            font-weight: 500;
+            flex: 1;
         }
         
-        #loadStatus.error {
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-            border-radius: 5px;
+        .icon {
+            font-size: 1.2em;
+            opacity: 0.7;
         }
         
-        .instructions {
-            background-color: #e7f3ff;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 14px;
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .main-content {
+                padding: 30px 20px;
+            }
+            
+            .arabic-title {
+                font-size: 3rem;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .info-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+                text-align: left;
+            }
+            
+            .info-item strong {
+                min-width: auto;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .arabic-title {
+                font-size: 2.5rem;
+            }
+            
+            .english-title {
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>HEC-Youth Conference Lookup</h1>
-        
-        <div class="instructions">
-            <strong>Instructions:</strong> Enter your phone number to find your room assignment
+        <div class="header">
+            <div class="arabic-title">الحكاية</div>
+            <div class="english-title">HEC Youth Conference</div>
+            <div class="subtitle">مؤتمر جامعة وخريجين • 12-15 سبتمبر</div>
         </div>
+        
+        <div class="main-content">
+            <div class="instructions">
+                <strong>Instructions:</strong> Enter your phone number to find your room assignment and group details
+            </div>
 
-        <div id="loadStatus" style="text-align: center; margin-bottom: 20px; padding: 10px;"></div>
-        
-        <div class="search-section">
-            <label for="phoneInput">Enter Your Phone Number:</label>
-            <input type="tel" id="phoneInput" placeholder="e.g., +1234567890 or 1234567890">
-            <button onclick="searchRoom()">Find My Room</button>
-        </div>
-        
-        <div id="result" class="result">
-            <h2 id="resultTitle">Room Assignment Found!</h2>
-            <div class="info-item">
-                <strong>Name:</strong>
-                <span id="resultName"></span>
+            <div id="loadStatus" style="display: none;"></div>
+            
+            <div class="search-section">
+                <div class="input-group">
+                    <label for="phoneInput">Enter Your Phone Number:</label>
+                    <input type="tel" id="phoneInput" placeholder="e.g., 01275470585 or 01206345643">
+                </div>
+                <button onclick="searchRoom()">Find My Data 🔍</button>
             </div>
-            <div class="info-item">
-                <strong>Phone:</strong>
-                <span id="resultPhone"></span>
-            </div>
-            <div class="info-item">
-                <strong>Room:</strong>
-                <span id="resultRoom"></span>
-            </div>
-            <div class="info-item">
-                <strong>Group:</strong>
-                <span id="resultGroup"></span>
+            
+            <div id="result" class="result">
+                <h2 id="resultTitle">Room Assignment Found!</h2>
+                <div class="info-item">
+                    <strong>Name:</strong>
+                    <span class="info-value" id="resultName"></span>
+                </div>
+                <div class="info-item">
+                    <strong>Phone:</strong>
+                    <span class="info-value" id="resultPhone"></span>
+                </div>
+                <div class="info-item">
+                    <strong>Room:</strong>
+                    <span class="info-value" id="resultRoom"></span>
+                </div>
+                <div class="info-item">
+                    <strong>Group:</strong>
+                    <span class="info-value" id="resultGroup"></span>
+                </div>
             </div>
         </div>
     </div>
@@ -183,6 +441,9 @@
         // Function to load Excel file
         function loadExcelData() {
             const statusDiv = document.getElementById('loadStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.textContent = 'Loading room data...';
+            statusDiv.className = 'loading';
             
             // Try to fetch the Excel file
             fetch('Rooms Lookup.xlsx')
@@ -208,7 +469,7 @@
                         conferenceData = [];
                         for (let i = 1; i < jsonData.length; i++) { // Start from 1 to skip header
                             const row = jsonData[i];
-                            if (row[0] && row[1] && row[2] && row[3]) { // Check if all three columns have data
+                            if (row[0] && row[1] && row[2] && row[3]) { // Check if all columns have data
                                 conferenceData.push({
                                     name: row[0].toString().trim(),
                                     phone: normalizePhone(row[1].toString()),
@@ -218,14 +479,21 @@
                             }
                         }
                         
+                        statusDiv.textContent = `Successfully loaded ${conferenceData.length} participants!`;
+                        statusDiv.className = 'success';
+                        
+                        setTimeout(() => {
+                            statusDiv.style.display = 'none';
+                        }, 3000);
+                        
                     } catch (error) {
-                        statusDiv.textContent = '❌ Error processing Excel file. Please check the format.';
+                        statusDiv.textContent = 'Error processing Excel file. Please check the format.';
                         statusDiv.className = 'error';
                         console.error('Error parsing Excel:', error);
                     }
                 })
                 .catch(error => {
-                    statusDiv.textContent = '❌ Could not find "Rooms Lookup.xlsx" file. Please make sure it\'s in the same folder as index.html';
+                    statusDiv.textContent = 'Could not find "Rooms Lookup.xlsx" file.';
                     statusDiv.className = 'error';
                     console.error('Fetch error:', error);
                 });
@@ -267,6 +535,7 @@
         // Function to show success result
         function showSuccess(person) {
             const resultDiv = document.getElementById('result');
+            document.getElementById('resultTitle').textContent = 'Room Assignment Found!';
             document.getElementById('resultName').textContent = person.name;
             document.getElementById('resultPhone').textContent = person.phone;
             document.getElementById('resultRoom').textContent = person.room;
@@ -274,15 +543,21 @@
             
             resultDiv.className = 'result success';
             resultDiv.style.display = 'block';
+            
+            // Smooth scroll to result
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
         
         // Function to show error message
         function showError(message) {
             const resultDiv = document.getElementById('result');
             document.getElementById('resultTitle').textContent = 'Error';
-            resultDiv.innerHTML = `<h2>Error</h2><p>${message}</p>`;
+            resultDiv.innerHTML = `<h2>Error</h2><p style="font-size: 16px; text-align: center; padding: 20px; line-height: 1.6;">${message}</p>`;
             resultDiv.className = 'result error';
             resultDiv.style.display = 'block';
+            
+            // Smooth scroll to result
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
         
         // Allow Enter key to trigger search
@@ -290,6 +565,14 @@
             if (e.key === 'Enter') {
                 searchRoom();
             }
+        });
+        
+        // Add loading animation to button when clicked
+        document.querySelector('button').addEventListener('click', function() {
+            this.style.transform = 'scale(0.98)';
+            setTimeout(() => {
+                this.style.transform = '';
+            }, 150);
         });
     </script>
 </body>
