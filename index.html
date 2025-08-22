@@ -536,6 +536,17 @@
         function showSuccess(person) {
             const resultDiv = document.getElementById('result');
             document.getElementById('resultTitle').textContent = 'Room Assignment Found!';
+            
+            // Remove any existing error message
+            const existingError = resultDiv.querySelector('.error-message');
+            if (existingError) {
+                existingError.remove();
+            }
+            
+            // Show all info items
+            const infoItems = resultDiv.querySelectorAll('.info-item');
+            infoItems.forEach(item => item.style.display = 'flex');
+            
             document.getElementById('resultName').textContent = person.name;
             document.getElementById('resultPhone').textContent = person.phone;
             document.getElementById('resultRoom').textContent = person.room;
@@ -552,7 +563,24 @@
         function showError(message) {
             const resultDiv = document.getElementById('result');
             document.getElementById('resultTitle').textContent = 'Error';
-            resultDiv.innerHTML = `<h2>Error</h2><p style="font-size: 16px; text-align: center; padding: 20px; line-height: 1.6;">${message}</p>`;
+            
+            // Hide all info items and show only error message
+            const infoItems = resultDiv.querySelectorAll('.info-item');
+            infoItems.forEach(item => item.style.display = 'none');
+            
+            // Remove any existing error paragraph
+            const existingError = resultDiv.querySelector('.error-message');
+            if (existingError) {
+                existingError.remove();
+            }
+            
+            // Add error message
+            const errorP = document.createElement('p');
+            errorP.className = 'error-message';
+            errorP.style.cssText = 'font-size: 16px; text-align: center; padding: 20px; line-height: 1.6; margin: 0;';
+            errorP.textContent = message;
+            resultDiv.appendChild(errorP);
+            
             resultDiv.className = 'result error';
             resultDiv.style.display = 'block';
             
