@@ -419,8 +419,12 @@
                     <span class="info-value" id="resultRoom"></span>
                 </div>
                 <div class="info-item">
-                    <strong>Group:</strong>
+                    <strong>Spiritual Group:</strong>
                     <span class="info-value" id="resultGroup"></span>
+                </div>
+                <div class="info-item">
+                    <strong>Sports Team:</strong>
+                    <span class="info-value" id="resultTeam"></span>
                 </div>
             </div>
         </div>
@@ -468,12 +472,13 @@
                             // Simple CSV parsing (handles quoted fields)
                             const row = parseCSVLine(line);
                             
-                            if (row.length >= 4 && row[0] && row[1] && row[2] && row[3]) {
+                            if (row.length >= 4 && row[0] && row[1] && row[2] && row[3] && row[4]) {
                                 conferenceData.push({
                                     name: row[0].toString().trim(),
                                     phone: normalizePhone(row[1].toString()),
                                     room: row[2].toString().trim(),
-                                    group: row[3].toString().trim()
+                                    group: row[3].toString().trim(),
+                                    team: row[4].toString().trim()
                                 });
                             }
                         }
@@ -573,6 +578,7 @@
             document.getElementById('resultPhone').textContent = person.phone;
             document.getElementById('resultRoom').textContent = person.room;
             document.getElementById('resultGroup').textContent = person.group;
+            document.getElementById('resultTeam').textContent = person.team;
             
             resultDiv.className = 'result success';
             resultDiv.style.display = 'block';
