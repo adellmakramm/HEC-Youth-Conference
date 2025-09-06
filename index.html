@@ -425,9 +425,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Include SheetJS library for Excel parsing -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <script>
         // Global variable to store the conference data
@@ -438,38 +435,40 @@
             loadExcelData();
         });
         
-        // Function to load Excel file
+        // Function to load data from Google Sheets
         function loadExcelData() {
             const statusDiv = document.getElementById('loadStatus');
             statusDiv.style.display = 'block';
             statusDiv.textContent = 'Loading room data...';
             statusDiv.className = 'loading';
             
-            // Try to fetch the Excel file
-            fetch('Rooms Lookup.xlsx')
+            // Google Sheets configuration
+            const SHEET_ID = '1s9EjQsHXDRp5xrFjx8nww_OcSiqoO_8C5k5nX9DBtM8';
+            const SHEET_NAME = 'Sheet1'; // Change this to your sheet name if different
+            const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${SHEET_NAME}`;
+            
+            fetch(csvUrl)
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('Excel file not found');
+                        throw new Error('Could not fetch Google Sheets data');
                     }
-                    return response.arrayBuffer();
+                    return response.text();
                 })
-                .then(arrayBuffer => {
+                .then(csvText => {
                     try {
-                        // Parse Excel file using SheetJS
-                        const workbook = XLSX.read(arrayBuffer, {type: 'array'});
-                        
-                        // Get the first worksheet
-                        const firstSheetName = workbook.SheetNames[0];
-                        const worksheet = workbook.Sheets[firstSheetName];
-                        
-                        // Convert to JSON
-                        const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
-                        
-                        // Process the data (skip header row if exists)
+                        // Parse CSV data
+                        const lines = csvText.split('\n');
                         conferenceData = [];
-                        for (let i = 1; i < jsonData.length; i++) { // Start from 1 to skip header
-                            const row = jsonData[i];
-                            if (row[0] && row[1] && row[2] && row[3]) { // Check if all columns have data
+                        
+                        // Process each line (skip header row)
+                        for (let i = 1; i < lines.length; i++) {
+                            const line = lines[i].trim();
+                            if (!line) continue;
+                            
+                            // Simple CSV parsing (handles quoted fields)
+                            const row = parseCSVLine(line);
+                            
+                            if (row.length >= 4 && row[0] && row[1] && row[2] && row[3]) {
                                 conferenceData.push({
                                     name: row[0].toString().trim(),
                                     phone: normalizePhone(row[1].toString()),
@@ -487,16 +486,39 @@
                         }, 3000);
                         
                     } catch (error) {
-                        statusDiv.textContent = 'Error processing Excel file. Please check the format.';
+                        statusDiv.textContent = 'Error processing data. Please check the format.';
                         statusDiv.className = 'error';
-                        console.error('Error parsing Excel:', error);
+                        console.error('Error parsing CSV:', error);
                     }
                 })
                 .catch(error => {
-                    statusDiv.textContent = 'Could not find "Rooms Lookup.xlsx" file.';
+                    statusDiv.textContent = 'Could not load online data. Please check your connection.';
                     statusDiv.className = 'error';
                     console.error('Fetch error:', error);
                 });
+        }
+        
+        // Simple CSV line parser that handles quoted fields
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            
+            result.push(current.trim());
+            return result;
         }
         
         // Function to normalize phone numbers (remove all non-digits)
